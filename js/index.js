@@ -1,10 +1,10 @@
 if (!localStorage.getItem("auth_token")) {
-  window.location = "login.html";
+  window.location = "login";
 } else {
-  document.getElementById("logout_btn").addEventListener("click", e => {
+  document.getElementById("logout_btn").addEventListener("click", (e) => {
     localStorage.removeItem("userId");
     localStorage.removeItem("auth_token");
-    window.location = "login.html";
+    window.location = "login";
   });
 
   const fetchBudget = async () => {
@@ -14,13 +14,24 @@ if (!localStorage.getItem("auth_token")) {
           "auth_token"
         )}&orderBy="userId"&equalTo="${localStorage.getItem("userId")}"`,
         {
-          mode: "cors"
+          mode: "cors",
         }
       );
+
       data = await data.json();
-      console.log(data);
+      // if (data) {
+      //   return alert("network error try again..");
+      // }
+      console.log(data, "data");
+      if (data.error) {
+        if (data.error === "Auth token is expired") {
+          return (window.location = "/login");
+        } else {
+          return alert(data.error);
+        }
+      }
       let month = UIController.displayMonth();
-      data = Object.keys(data).map(el => {
+      data = Object.keys(data).map((el) => {
         if (data[el]["month"] === month) {
           data[el].name = el;
           return data[el];
@@ -29,6 +40,7 @@ if (!localStorage.getItem("auth_token")) {
       return data;
     } catch (er) {
       console.log(er);
+      return alert("network error refresh again..");
     }
   };
 
@@ -39,18 +51,18 @@ if (!localStorage.getItem("auth_token")) {
       let i = 1,
         j = 1;
       console.log(data);
-      data.forEach(el => {
+      data.forEach((el) => {
         if (el["value"] * 1 > 0) {
           obj = dataController.addItem("inc", {
             name: el.name,
             description: el["desc"],
-            value: el["value"] * 1
+            value: el["value"] * 1,
           });
           UIController.addListItem(
             {
               Id: obj.Id,
               desc: el["desc"],
-              value: el["value"] * 1
+              value: el["value"] * 1,
             },
             "inc"
           );
@@ -59,13 +71,13 @@ if (!localStorage.getItem("auth_token")) {
           obj = dataController.addItem("exp", {
             name: el.name,
             description: el["desc"],
-            value: el["value"] * -1
+            value: el["value"] * -1,
           });
           UIController.addListItem(
             {
               Id: obj.Id,
               desc: el["desc"],
-              value: el["value"] * -1
+              value: el["value"] * -1,
             },
             "exp"
           );
@@ -77,40 +89,40 @@ if (!localStorage.getItem("auth_token")) {
     }
   };
 
-  var dataController = (function() {
+  var dataController = (function () {
     //datastructure
-    var Expense = function(Id, desc, value) {
+    var Expense = function (Id, desc, value) {
       (this.Id = Id), (this.desc = desc), (this.value = value);
     };
-    var Income = function(Id, desc, value) {
+    var Income = function (Id, desc, value) {
       (this.Id = Id), (this.value = value), (this.desc = desc);
     };
     var data = {
       allItems: {
         inc: [],
-        exp: []
+        exp: [],
       },
       totals: {
         inc: 0,
-        exp: 0
+        exp: 0,
       },
 
       budget: 0,
 
-      percentage: -1
+      percentage: -1,
     };
 
-    var calculateTotal = function(type) {
+    var calculateTotal = function (type) {
       var sum = 0;
-      data.allItems[type].forEach(function(cur) {
+      data.allItems[type].forEach(function (cur) {
         sum += cur.value;
       });
       data.totals[type] = sum;
     };
 
-    var calculatePercentages = function(type) {
+    var calculatePercentages = function (type) {
       var percentages;
-      percentages = data.allItems[type].map(function(current) {
+      percentages = data.allItems[type].map(function (current) {
         if (data.totals.inc > 0)
           return Math.round((current.value / data.totals.inc) * 100);
         else return -1;
@@ -119,7 +131,7 @@ if (!localStorage.getItem("auth_token")) {
     };
 
     return {
-      addItem: function(type, input) {
+      addItem: function (type, input) {
         var obj, Id;
         if (data.allItems[type].length === 0) Id = 0;
         else Id = data.allItems[type][data.allItems[type].length - 1].Id + 1;
@@ -135,10 +147,10 @@ if (!localStorage.getItem("auth_token")) {
         return obj;
       },
 
-      deleteItem: async function(type, id) {
+      deleteItem: async function (type, id) {
         var ids, index;
 
-        ids = data.allItems[type].map(function(cur) {
+        ids = data.allItems[type].map(function (cur) {
           return cur.Id;
         });
         index = ids.indexOf(id);
@@ -151,16 +163,19 @@ if (!localStorage.getItem("auth_token")) {
               }.json?auth=${localStorage.getItem("auth_token")}`,
               {
                 method: "DELETE",
-                mode: "cors"
+                mode: "cors",
               }
             );
+            if (!res) {
+              return alert("network error try again..");
+            }
             data.allItems[type].splice(index, 1);
           } catch (er) {
             console.log(er);
           }
         }
       },
-      calculateBudget: function() {
+      calculateBudget: function () {
         //calculate inc and exp
 
         calculateTotal("inc");
@@ -178,26 +193,26 @@ if (!localStorage.getItem("auth_token")) {
           data.percentage = -1;
         }
       },
-      getBudget: function() {
+      getBudget: function () {
         return {
           budget: data.budget,
           totalExp: data.totals.exp,
           totalInc: data.totals.inc,
-          percentage: data.percentage
+          percentage: data.percentage,
         };
       },
-      getPercentages: function() {
+      getPercentages: function () {
         var perc = calculatePercentages("exp");
         return perc;
       },
 
-      testing: function() {
+      testing: function () {
         console.log(data);
-      }
+      },
     };
   })();
 
-  var UIController = (function() {
+  var UIController = (function () {
     var DOMStrings;
 
     DOMStrings = {
@@ -213,25 +228,27 @@ if (!localStorage.getItem("auth_token")) {
       percentageLabel: ".budget__expenses--percentage",
       container: ".container",
       expensesPercLabel: ".item__percentage",
-      dateLabel: ".budget__title--month"
+      dateLabel: ".budget__title--month",
     };
 
-    var nodeListForEach = function(list, callback) {
+    var nodeListForEach = function (list, callback) {
       var i;
       for (i = 0; i < list.length; i++) callback(list[i], i);
     };
 
     return {
-      getInput: function() {
+      getInput: function () {
         return {
           type: document.querySelector(DOMStrings.inputType).value,
           description: document.querySelector(DOMStrings.inputDescription)
             .value,
-          value: parseFloat(document.querySelector(DOMStrings.inputValue).value)
+          value: parseFloat(
+            document.querySelector(DOMStrings.inputValue).value
+          ),
         };
       },
 
-      addListItem: function(item, type) {
+      addListItem: function (item, type) {
         var html, newHtml, element;
         if (type === "inc") {
           html =
@@ -252,12 +269,12 @@ if (!localStorage.getItem("auth_token")) {
           .insertAdjacentHTML("beforeend", newHtml);
       },
 
-      deleteListItem: function(id) {
+      deleteListItem: function (id) {
         var el = document.getElementById(id);
         console.log("ho");
         el.parentNode.removeChild(el);
       },
-      deleteFields: function() {
+      deleteFields: function () {
         var fields, fieldsArray;
 
         fields = document.querySelectorAll(
@@ -265,12 +282,12 @@ if (!localStorage.getItem("auth_token")) {
         );
         fieldsArray = Array.prototype.slice.call(fields);
 
-        fieldsArray.forEach(function(current, index, array) {
+        fieldsArray.forEach(function (current, index, array) {
           current.value = "";
         });
         fieldsArray[0].focus();
       },
-      displayBudget: function(obj) {
+      displayBudget: function (obj) {
         document.querySelector(DOMStrings.budgetLabel).textContent = obj.budget;
         document.querySelector(DOMStrings.incomeLabel).textContent =
           obj.totalInc;
@@ -285,7 +302,7 @@ if (!localStorage.getItem("auth_token")) {
             "---";
       },
 
-      displayMonth: function() {
+      displayMonth: function () {
         var now, year, month, months;
         now = new Date();
         year = 1900 + now.getYear();
@@ -302,16 +319,16 @@ if (!localStorage.getItem("auth_token")) {
           "September",
           "October",
           "November",
-          "December"
+          "December",
         ];
         document.querySelector(DOMStrings.dateLabel).textContent =
           months[month] + " " + year;
         return months[month];
       },
-      displayPercentages: function(perc) {
+      displayPercentages: function (perc) {
         var objList = document.querySelectorAll(DOMStrings.expensesPercLabel);
 
-        nodeListForEach(objList, function(current, index) {
+        nodeListForEach(objList, function (current, index) {
           if (perc[index] > 0) {
             current.textContent = perc[index] + "%";
           } else {
@@ -320,7 +337,7 @@ if (!localStorage.getItem("auth_token")) {
         });
       },
 
-      changeFocus: function() {
+      changeFocus: function () {
         var objList;
         objList = document.querySelectorAll(
           DOMStrings.inputType +
@@ -329,28 +346,28 @@ if (!localStorage.getItem("auth_token")) {
             "," +
             DOMStrings.inputValue
         );
-        nodeListForEach(objList, function(current, index) {
+        nodeListForEach(objList, function (current, index) {
           current.classList.toggle("red-focus");
         });
         document.querySelector(DOMStrings.inputBtn).classList.toggle("red");
       },
 
-      getDOM: function() {
+      getDOM: function () {
         return DOMStrings;
-      }
+      },
     };
   })();
 
-  var controller = (function(UICtrl, dataCtrl) {
+  var controller = (function (UICtrl, dataCtrl) {
     //add event handler
     var inData, DOM;
     DOM = UICtrl.getDOM();
-    var setUpEventListener = async function() {
+    var setUpEventListener = async function () {
       document
         .querySelector(DOM.inputBtn)
         .addEventListener("click", await ctrlAddItem);
 
-      document.addEventListener("keypress", function(event) {
+      document.addEventListener("keypress", function (event) {
         if (event.keyCode === 13 || event.which === 13) ctrlAddItem();
       });
       document
@@ -361,7 +378,7 @@ if (!localStorage.getItem("auth_token")) {
         .querySelector(DOM.inputType)
         .addEventListener("change", UICtrl.changeFocus);
     };
-    var updateBudget = function() {
+    var updateBudget = function () {
       var budg;
       //calculate budget
       dataCtrl.calculateBudget();
@@ -373,14 +390,14 @@ if (!localStorage.getItem("auth_token")) {
       UICtrl.displayBudget(budg);
     };
 
-    var updatePercentages = function() {
+    var updatePercentages = function () {
       var perc;
       perc = dataCtrl.getPercentages();
 
       UICtrl.displayPercentages(perc);
     };
 
-    var ctrlAddItem = async function() {
+    var ctrlAddItem = async function () {
       var objList, objArr;
       //get input data
       try {
@@ -409,7 +426,7 @@ if (!localStorage.getItem("auth_token")) {
             {
               method: "POST",
               mode: "cors",
-              body: JSON.stringify(data)
+              body: JSON.stringify(data),
             }
           );
           res = await res.json();
@@ -433,7 +450,7 @@ if (!localStorage.getItem("auth_token")) {
         console.log(er);
       }
     };
-    var ctrlDeleteItem = async function(event) {
+    var ctrlDeleteItem = async function (event) {
       var id, type, splitId, itemId;
       //delete item from ds
       itemId = event.target.parentNode.parentNode.parentNode.parentNode.id;
@@ -456,7 +473,7 @@ if (!localStorage.getItem("auth_token")) {
     };
 
     return {
-      init: async function() {
+      init: async function () {
         setUpEventListener();
         const month = UICtrl.displayMonth();
         console.log("app has strated");
@@ -464,7 +481,7 @@ if (!localStorage.getItem("auth_token")) {
           budget: 0,
           totalExp: 0,
           totalInc: 0,
-          percentage: -1
+          percentage: -1,
         });
         try {
           await displayInitialItem();
@@ -475,9 +492,9 @@ if (!localStorage.getItem("auth_token")) {
           console.log(err);
         }
       },
-      display: function() {
+      display: function () {
         console.log(inData);
-      }
+      },
     };
   })(UIController, dataController);
 

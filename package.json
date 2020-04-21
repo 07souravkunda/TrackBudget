@@ -1,0 +1,25 @@
+{
+  "name": "trackbudget",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "deploy": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/07souravkunda/TrackBudget.git"
+  },
+  "author": "Sourav Kunda",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/07souravkunda/TrackBudget/issues"
+  },
+  "homepage": "https://github.com/07souravkunda/TrackBudget#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.3"
+  }
+}

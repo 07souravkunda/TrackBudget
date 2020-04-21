@@ -1,4 +1,4 @@
-const signUp = async data => {
+const signUp = async (data) => {
   try {
     data["returnSecureToken"] = true;
     const res = await fetch(
@@ -6,7 +6,7 @@ const signUp = async data => {
       {
         method: "POST",
         mode: "cors",
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       }
     );
     return await res.json();
@@ -15,7 +15,7 @@ const signUp = async data => {
   }
 };
 
-const signIn = async data => {
+const signIn = async (data) => {
   try {
     data["returnSecureToken"] = true;
     const res = await fetch(
@@ -23,7 +23,7 @@ const signIn = async data => {
       {
         method: "POST",
         mode: "cors",
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       }
     );
     return await res.json();
@@ -31,7 +31,7 @@ const signIn = async data => {
     console.log(er);
   }
 };
-document.getElementById("signup_btn").addEventListener("click", e => {
+document.getElementById("signup_btn").addEventListener("click", (e) => {
   console.log(e.target);
   const el = document.getElementById("submit_btn");
   if (e.target.innerHTML === "SIGNUP") {
@@ -49,8 +49,8 @@ document.getElementById("signup_btn").addEventListener("click", e => {
 // 	}
 // })
 ("use strict");
-$(function() {
-  $("input[type='password'][data-eye]").each(function(i) {
+$(function () {
+  $("input[type='password'][data-eye]").each(function (i) {
     var $this = $(this),
       id = "eye-password-" + i,
       el = $("#" + id);
@@ -58,48 +58,45 @@ $(function() {
     $this.wrap(
       $("<div/>", {
         style: "position:relative",
-        id: id
+        id: id,
       })
     );
 
     $this.css({
-      paddingRight: 60
+      paddingRight: 60,
     });
     $this.after(
       $("<div/>", {
         html: "Show",
         class: "btn btn-primary btn-sm",
-        id: "passeye-toggle-" + i
+        id: "passeye-toggle-" + i,
       }).css({
         position: "absolute",
         right: 10,
         top: $this.outerHeight() / 2 - 12,
         padding: "2px 7px",
         fontSize: 12,
-        cursor: "pointer"
+        cursor: "pointer",
       })
     );
 
     $this.after(
       $("<input/>", {
         type: "hidden",
-        id: "passeye-" + i
+        id: "passeye-" + i,
       })
     );
 
-    var invalid_feedback = $this
-      .parent()
-      .parent()
-      .find(".invalid-feedback");
+    var invalid_feedback = $this.parent().parent().find(".invalid-feedback");
 
     if (invalid_feedback.length) {
       $this.after(invalid_feedback.clone());
     }
 
-    $this.on("keyup paste", function() {
+    $this.on("keyup paste", function () {
       $("#passeye-" + i).val($(this).val());
     });
-    $("#passeye-toggle-" + i).on("click", function() {
+    $("#passeye-toggle-" + i).on("click", function () {
       if ($this.hasClass("show")) {
         $this.attr("type", "password");
         $this.removeClass("show");
@@ -113,7 +110,7 @@ $(function() {
     });
   });
 
-  $(".my-login-validation").submit(async function() {
+  $(".my-login-validation").submit(async function () {
     var form = $(this);
     if (form[0].checkValidity() === false) {
       event.preventDefault();
@@ -128,16 +125,22 @@ $(function() {
     try {
       if (document.getElementById("submit_btn").innerHTML === "SIGNUP") {
         const res = await signUp(data);
+        if (res.error) {
+          return alert(res.error.message);
+        }
         localStorage.setItem("auth_token", res.idToken);
         localStorage.setItem("userId", res.localId);
         console.log(res);
       } else {
         const res = await signIn(data);
-        console.log(res);
+        // console.log(res)
+        if (res.error) {
+          return alert(res.error.message);
+        }
         localStorage.setItem("auth_token", res.idToken);
         localStorage.setItem("userId", res.localId);
       }
-      window.location = "index.html";
+      window.location = "/";
     } catch (er) {
       console.log(er);
     }
